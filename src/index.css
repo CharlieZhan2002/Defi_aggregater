@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 自定义全局主题（深色） */
+:root {
+  --color-bg: #0f172a;         /* 深背景 */
+  --color-fg: #f1f5f9;         /* 字体颜色 */
+  --color-accent: #64748b;     /* 中性色 */
+  --color-hover: #1e293b;      /* hover 背景 */
+  --color-ring: #3b82f6;       /* focus ring */
+  --color-border: #334155;     /* 边框色 */
+
+  font-family: 'Inter', system-ui, sans-serif;
+  background-color: var(--color-bg);
+  color: var(--color-fg);
+}
+
+body {
+  @apply m-0 min-h-screen bg-[#0f172a] text-white;
+}
+
+/* 默认链接 */
+a {
+  @apply font-medium text-blue-400 hover:text-blue-300;
+}
+
+/* 默认按钮（会被组件覆盖） */
+button {
+  @apply rounded-md px-4 py-2 bg-slate-700 hover:bg-slate-600 text-sm font-medium transition;
+}
