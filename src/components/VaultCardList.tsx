@@ -1,96 +1,106 @@
-// VaultCardList.tsx
 import React, { useEffect, useState } from 'react';
-import { fetchBeefyVaultData } from './beefy';
+import { fetchBeefyVaultData } from './beefy';        // 注意相对路径
 import { FaSearch, FaSortUp, FaSortDown } from 'react-icons/fa';
+import { buildIconFallbackList } from '../utils/tokenIconPaths'
+import { iconLayout } from '../utils/iconLayout';
+
+/* ------------------------ 类型 & 常量 ------------------------ */
+type Vault = {
+  id: string;
+  name: string;
+  chain: string;
+  assets: string[]; 
+  apy: string;
+  daily: string;
+  tvl: string;
+  tags: string[];
+};
 
 const sortFields = ['CURRENT APY', 'DAILY', 'TVL'] as const;
 type SortField = typeof sortFields[number];
 
-type Vault = {
-  id: string;
-  name: string;
-  logo: string;
-  apy: string;      // 已是“12.34%”
-  daily: string;    // 已是“0.0340%”
-  tvl: string;      // 已是“$123,456”
-  tags: string[];
+/* 实用：把 $ % , 去掉转为数值 */
+const toNumber = (v: unknown) => {
+  if (typeof v === 'number') return v;
+  if (typeof v === 'string') {
+    const n = parseFloat(v.replace(/[$,%]/g, ''));
+    return isNaN(n) ? 0 : n;
+  }
+  return 0;
 };
 
-export const VaultCardList = () => {
+/* 根据链名拼本地 icon 路径 */
+const getChainIconUrl = (chain: string) =>
+  `/images/networks/${chain}.svg`;
+
+/* ------------------------ 组件主体 ------------------------ */
+type Props = {
+  selectedChains: string[];   // 传入已选链 key 数组
+};
+
+export const VaultCardList: React.FC<Props> = ({ selectedChains }) => {
   const [vaults, setVaults] = useState<Vault[]>([]);
   const [search, setSearch] = useState('');
   const [sortField, setSortField] = useState<SortField | ''>('');
   const [sortAsc, setSortAsc] = useState(false);
 
-  useEffect(() => {
-    fetchBeefyVaultData().then(setVaults);
-  }, []);
+  /* 拉数据一次 */
+  useEffect(() => { fetchBeefyVaultData().then(setVaults); }, []);
 
-  const handleSortClick = (field: SortField) => {
+  /* 点击排序标题 */
+  const toggleSort = (field: SortField) => {
     if (sortField === field) setSortAsc(!sortAsc);
-    else {
-      setSortField(field);
-      setSortAsc(false);
-    }
+    else { setSortField(field); setSortAsc(false); }
   };
 
-  const filtered = vaults
-    .filter(v => v.name.toLowerCase().includes(search.toLowerCase()))
+  /* 过滤 & 排序 */
+  const shown = vaults
+    .filter(v =>
+      v.name.toLowerCase().includes(search.toLowerCase()) &&
+      (selectedChains.length === 0 || selectedChains.includes(v.chain)))
     .sort((a, b) => {
-      const num = (value: unknown) => {
-  if (typeof value === 'number') return value;               // 本身就是数字
-  if (typeof value === 'string') {
-    const cleaned = value.replace(/[$,%]/g, '');             // 去掉 $ 和 %
-    const parsed = parseFloat(cleaned);
-    return isNaN(parsed) ? 0 : parsed;
-  }
-  return 0;                                                  // undefined / 其他
-};         // 把 $, % 都去掉
-      let aVal = 0, bVal = 0;
+      let aV = 0, bV = 0;
       switch (sortField) {
-        case 'CURRENT APY': aVal = num(a.apy);   bVal = num(b.apy);   break;
-        case 'DAILY':       aVal = num(a.daily); bVal = num(b.daily); break;
-        case 'TVL':         aVal = num(a.tvl);   bVal = num(b.tvl);   break;
+        case 'CURRENT APY': aV = toNumber(a.apy);   bV = toNumber(b.apy);   break;
+        case 'DAILY':       aV = toNumber(a.daily); bV = toNumber(b.daily); break;
+        case 'TVL':         aV = toNumber(a.tvl);   bV = toNumber(b.tvl);   break;
         default: return 0;
       }
-      return sortAsc ? aVal - bVal : bVal - aVal;
+      return sortAsc ? aV - bV : bV - aV;
     });
 
   return (
-    <div className="p-4 space-y-4">
-      {/* 工具栏 */}
+    <div className="space-y-4">
+      {/* 搜索 + 排序 */}
       <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-[#1e293b] px-4 py-3 rounded-lg text-slate-300 text-sm">
         {/* 搜索框 */}
         <div className="flex items-center bg-[#0f172a] px-3 py-1.5 rounded-md w-full md:w-80">
           <FaSearch className="text-slate-500 mr-2" />
           <input
-            type="text"
             placeholder="Search by asset name"
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="bg-transparent outline-none w-full text-white placeholder-slate-500"
           />
         </div>
-
         {/* 排序字段 */}
         <div className="flex gap-6 flex-wrap justify-end w-full md:w-auto">
-          {sortFields.map(field => (
+          {sortFields.map(f => (
             <button
-              key={field}
-              onClick={() => handleSortClick(field)}
-              className={`flex items-center gap-1 cursor-pointer whitespace-nowrap hover:text-white ${
-                sortField === field ? 'text-white font-semibold' : ''
-              }`}
+              key={f}
+              onClick={() => toggleSort(f)}
+              className={`flex items-center gap-1 hover:text-white ${
+                sortField === f ? 'text-white font-semibold' : ''}`}
             >
-              {field}
-              {sortField === field &&
+              {f}
+              {sortField === f &&
                 (sortAsc ? <FaSortUp className="text-xs" /> : <FaSortDown className="text-xs" />)}
             </button>
           ))}
         </div>
       </div>
 
-      {/* 表头 */}
+      {/* 表头（大屏） */}
       <div className="hidden md:flex justify-between text-xs text-slate-400 px-2 pl-16 pr-6">
         <div className="w-1/2" />
         <div className="flex gap-10 w-1/2 justify-end">
@@ -101,31 +111,79 @@ export const VaultCardList = () => {
       </div>
 
       {/* 卡片列表 */}
-      {filtered.map(vault => (
-        <div
-          key={vault.id}
-          className="flex items-center justify-between bg-[#1e293b] text-white rounded-lg px-4 py-3 shadow hover:shadow-lg transition"
-        >
-          {/* 左侧 */}
-          <div className="flex items-center gap-4 w-1/2">
-            <img src={`https://app.beefy.finance/icons/${vault.logo}`} alt={vault.name} className="w-10 h-10 rounded-full" />
-            <div>
-              <div className="text-base font-semibold">{vault.name}</div>
-              <div className="flex gap-2 mt-1 text-xs">
-                {vault.tags.map(tag => (
-                  <span key={tag} className="bg-slate-700 px-2 py-0.5 rounded-full capitalize">
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
+      {shown.map(v => (
+        <div key={v.id}
+          className="relative flex items-center justify-between bg-[#1e293b] text-white
+                     rounded-lg px-4 py-3 shadow hover:shadow-lg transition">
+          {/* 链图标 */}
+          <img
+            src={getChainIconUrl(v.chain)}
+            onError={e => {
+              const img = e.currentTarget as HTMLImageElement;
+              if (!img.dataset.fallback) {
+                img.dataset.fallback = 'true';
+                img.src = '/images/networks/default.svg';
+              }
+            }}
+            alt={v.chain}
+            className="absolute top-2 left-2 w-4 h-4"
+          />
+
+         {/* 左侧信息 */}
+<div className="flex items-center gap-4 w-1/2 pl-4">
+  {/* 资产图标组 */}
+<div className="relative" style={{ width: 40, height: 40 }}>
+  {v.assets.slice(0, 4).map((sym: string, idx: number) => {
+    const paths = buildIconFallbackList(v.chain, sym);
+    const { translate, z, size } = iconLayout(v.assets.length, idx);
+
+    return (
+      <img
+        key={sym}
+        src={paths[0]}
+        data-fallback={JSON.stringify(paths.slice(1))}
+        onError={e => {
+          const img = e.currentTarget as HTMLImageElement;
+          const list = JSON.parse(img.dataset.fallback || '[]') as string[];
+          if (list.length) {
+            img.src = list.shift()!;
+            img.dataset.fallback = JSON.stringify(list);
+          }
+        }}
+        alt={sym}
+        style={{
+          position: 'absolute',
+          width: size,
+          height: size,
+          translate,
+          zIndex: z,
+        }}
+        className="rounded-full object-contain bg-[#1e2537] ring-1 ring-[#1e2537]"
+      />
+    );
+  })}
+</div>
+
+
+  {/* 名称 & 标签 */}
+  <div>
+    <div className="text-base font-semibold">{v.name}</div>
+    <div className="flex gap-2 mt-1 text-xs">
+      {v.tags.map(t => (
+        <span key={t} className="bg-slate-700 px-2 py-0.5 rounded-full capitalize">
+          {t}
+        </span>
+      ))}
+    </div>
+  </div>
+</div>
+
 
           {/* 右侧数值 */}
           <div className="flex gap-10 w-1/2 justify-end text-sm text-right">
-            <div className="w-20 text-yellow-400 font-semibold">{vault.apy}</div>
-            <div className="w-20 text-green-400">{vault.daily}</div>
-            <div className="w-24">{vault.tvl}</div>
+            <div className="w-20 text-yellow-400 font-semibold">{v.apy}</div>
+            <div className="w-20 text-green-400">{v.daily}</div>
+            <div className="w-24">{v.tvl}</div>
           </div>
         </div>
       ))}
