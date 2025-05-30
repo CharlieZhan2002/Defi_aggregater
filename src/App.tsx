@@ -2,9 +2,8 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import VaultDetailPage from './pages/VaultDetailPage';
 
-
 export default function App() {
-    return (
+  return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<HomePage />} />

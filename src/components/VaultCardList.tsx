@@ -15,10 +15,11 @@ type Vault = {
   daily: string;
   tvl: string;
   tags: string[];
+  category: string; // yfh add
 };
 
-const sortFields = ['CURRENT APY', 'DAILY', 'TVL'] as const;
-type SortField = typeof sortFields[number];
+export const sortFields = ['CURRENT APY', 'DAILY', 'TVL'] as const;
+export type SortField = typeof sortFields[number];
 
 /* 实用：把 $ % , 去掉转为数值 */
 const toNumber = (v: unknown) => {
@@ -30,6 +31,7 @@ const toNumber = (v: unknown) => {
   return 0;
 };
 
+
 /* 根据链名拼本地 icon 路径 */
 const getChainIconUrl = (chain: string) =>
   `/images/networks/${chain}.svg`;
@@ -37,14 +39,33 @@ const getChainIconUrl = (chain: string) =>
 /* ------------------------ 组件主体 ------------------------ */
 type Props = {
   selectedChains: string[];   // 传入已选链 key 数组
+  selectedCategory: string | null; // new
+  //new
+  search: string;
+  sortField: SortField | '';
+  minimumTvl: number; // 添加这个
 };
+// type Props = {
+//   selectedChains: string[];
+//   // selectedCategory: string | null;
+//   selectedCategory?: string | null;
+//   search: string;
+//   sortField: SortField | '';
+//   minimumTvl: number; //  yfh add
+// };
 
-export const VaultCardList: React.FC<Props> = ({ selectedChains }) => {
+
+
+
+export const VaultCardList: React.FC<Props> = ({ selectedChains, selectedCategory }) => {
   const navigate = useNavigate();
   const [vaults, setVaults] = useState<Vault[]>([]);
   const [search, setSearch] = useState('');
   const [sortField, setSortField] = useState<SortField | ''>('');
   const [sortAsc, setSortAsc] = useState(false);
+  const [minimumTvl, setMinimumTvl] = useState(0); // add
+
+
 
   /* 拉数据一次 */
   useEffect(() => { fetchBeefyVaultData().then(setVaults); }, []);
@@ -57,9 +78,29 @@ export const VaultCardList: React.FC<Props> = ({ selectedChains }) => {
 
   /* 过滤 & 排序 */
   const shown = vaults
+    .filter(v => {
+      console.log('[DEBUG] 当前分类:', selectedCategory)
+      console.log('[DEBUG] 当前 vault tags:', v.tags)
+
+
+
+      return (
+        v.name.toLowerCase().includes(search.toLowerCase()) &&
+        (selectedChains.length === 0 || selectedChains.includes(v.chain)) &&
+        // (!selectedCategory || v.tags.map(tag => tag.toLowerCase()).includes(selectedCategory.toLowerCase()))
+        (!selectedCategory || v.category === selectedCategory)
+
+      );
+    })
     .filter(v =>
       v.name.toLowerCase().includes(search.toLowerCase()) &&
-      (selectedChains.length === 0 || selectedChains.includes(v.chain)))
+      (selectedChains.length === 0 || selectedChains.includes(v.chain)) &&
+      // (!selectedCategory || v.tags.includes(selectedCategory.toUpperCase()))
+      (!selectedCategory || v.category === selectedCategory) &&
+      toNumber(v.tvl) >= minimumTvl // add
+
+
+    )
     .sort((a, b) => {
       let aV = 0, bV = 0;
       switch (sortField) {
@@ -72,7 +113,8 @@ export const VaultCardList: React.FC<Props> = ({ selectedChains }) => {
     });
 
   return (
-    <div className="space-y-4">
+    // <div className="space-y-4">
+    <div className="space-y-4 relative z-10">
       {/* 搜索 + 排序 */}
       <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-[#1e293b] px-4 py-3 rounded-lg text-slate-300 text-sm">
         {/* 搜索框 */}
@@ -113,6 +155,7 @@ export const VaultCardList: React.FC<Props> = ({ selectedChains }) => {
       </div>
 
       {/* 卡片列表 */}
+      <div className="relative z-0 space-y-4"></div>
       {shown.map(v => (
         <div key={v.id}
           onClick={() => navigate(`/vault/${v.id}`)}

@@ -1,16 +1,26 @@
 import { useState } from 'react'
 import { FaSearch } from 'react-icons/fa'
+// 20250530 yfh
+import CategoryFilterBar from './CategoryFilterBar'
 
-const sortFields = ['CURRENT APY', 'DAILY', 'TVL']
+import type { SortField } from './VaultCardList' // 加上类型导入
+// const sortFields = ['CURRENT APY', 'DAILY', 'TVL']
+const sortFields: SortField[] = ['CURRENT APY', 'DAILY', 'TVL'];
+
+
 
 export default function VaultToolbar({
   onSearch,
   onSort,
+  onCategoryChange, //
 }: {
   onSearch: (value: string) => void
-  onSort: (field: string) => void
+  onSort: (field: SortField) => void
+  onCategoryChange: (category: string | null) => void //
 }) {
   const [search, setSearch] = useState('')
+  //
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
 
   return (
     <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-[#1e293b] px-4 py-3 rounded-lg text-slate-300 text-sm">
@@ -30,6 +40,15 @@ export default function VaultToolbar({
         />
       </div>
 
+      {/* 分类筛选栏 */}
+      <CategoryFilterBar
+        selected={selectedCategory}
+        onSelected={(cat) => {
+          setSelectedCategory(cat)
+          onCategoryChange(cat)
+        }}
+      />
+
       {/* 排序字段 */}
       <div className="flex gap-6 flex-wrap justify-end w-full md:w-auto">
         {sortFields.map(field => (
@@ -42,6 +61,9 @@ export default function VaultToolbar({
           </button>
         ))}
       </div>
+
+      
+
     </div>
   )
 }
