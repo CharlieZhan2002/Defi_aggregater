@@ -2,11 +2,18 @@ import { useState } from 'react'
 
 const categories = ['Stablecoins', 'Blue Chips', 'Memes', 'Correlated']
 
-export default function CategoryFilterBar() {
-  const [selected, setSelected] = useState<string | null>(null)
+// 20250530 yfh add props interface
+interface Props {
+  selected: string | null
+  onSelected: (cat: string | null) => void
+}
+
+// 20250530 yfh change this function to send notification to parent
+export default function CategoryFilterBar({ selected, onSelected }: Props) {
+  // const [selected, setSelected] = useState<string | null>(null)
 
   const handleClick = (cat: string) => {
-    setSelected(cat === selected ? null : cat)
+    onSelected(cat === selected ? null : cat)
   }
 
   return (
