@@ -4,6 +4,7 @@ import { FaSearch, FaSortUp, FaSortDown } from 'react-icons/fa';
 import { buildIconFallbackList } from '../utils/tokenIconPaths'
 import { iconLayout } from '../utils/iconLayout';
 
+import { useNavigate } from 'react-router-dom';
 /* ------------------------ 类型 & 常量 ------------------------ */
 type Vault = {
   id: string;
@@ -39,6 +40,7 @@ type Props = {
 };
 
 export const VaultCardList: React.FC<Props> = ({ selectedChains }) => {
+  const navigate = useNavigate();
   const [vaults, setVaults] = useState<Vault[]>([]);
   const [search, setSearch] = useState('');
   const [sortField, setSortField] = useState<SortField | ''>('');
@@ -113,8 +115,10 @@ export const VaultCardList: React.FC<Props> = ({ selectedChains }) => {
       {/* 卡片列表 */}
       {shown.map(v => (
         <div key={v.id}
+          onClick={() => navigate(`/vault/${v.id}`)}
           className="relative flex items-center justify-between bg-[#1e293b] text-white
-                     rounded-lg px-4 py-3 shadow hover:shadow-lg transition">
+             rounded-lg px-4 py-3 shadow hover:shadow-lg transition
+             cursor-pointer hover:-translate-y-0.5" >
           {/* 链图标 */}
           <img
             src={getChainIconUrl(v.chain)}
