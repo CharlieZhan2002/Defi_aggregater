@@ -27,6 +27,7 @@ export type VaultUI = {
   daily: string;     
   tvl:   string;     
   tags:  string[];
+  category: string;  // 20250530 yfh 新增
 };
 
 export async function fetchBeefyVaultData(): Promise<VaultUI[]> {
@@ -51,6 +52,36 @@ export async function fetchBeefyVaultData(): Promise<VaultUI[]> {
     const chainId  = CHAIN_ID_MAP[v.chain];
     const tvlRaw   = chainId ? tvlMap?.[chainId]?.[v.id] : undefined;
 
+    // 20250530 yfh add 
+    // 分类逻辑（可以按名称、平台、symbol 自定义）
+    // let category = 'Others';
+    // const name = v.name?.toLowerCase() || '';
+    // if (name.includes('USDC') || name.includes('DAI') || name.includes('USDT')) {
+    //   category = 'Stablecoins';
+    // } else if (name.includes('ETH') || name.includes('BTC')) {
+    //   category = 'Blue Chips';
+    // } else if (name.includes('DOGES') || name.includes('SHIBA') || name.includes('PEPE')) {
+    //   category = 'Memes';
+    // } else if (v.platformId?.toLowerCase().includes('CURVE')) {
+    //   category = 'Correlated';
+    // }
+    function guessCategory(name: string): string {
+      const lower = name.toLowerCase();
+
+      if (lower.includes('usdt') || lower.includes('usdc') || lower.includes('usd')) {
+        return 'Stablecoins';
+      }
+      if (lower.includes('btc') || lower.includes('eth') || lower.includes('matic')) {
+        return 'Blue Chips';
+      }
+      if (lower.includes('doge') || lower.includes('pepe') || lower.includes('shib')) {
+        return 'Memes';
+      }
+
+      return 'Correlated';
+    }
+
+
     return {
       id:    v.id,
       name:  v.name,
@@ -65,6 +96,9 @@ export async function fetchBeefyVaultData(): Promise<VaultUI[]> {
                : 'N/A',
 
       tags:  [v.platformId, v.status].filter(Boolean).map(t => t.toUpperCase()),
+      // category, // 20250530 yfh add
+      category: guessCategory(v.name), // 自己写分类函数
+
     };
   });
 }
