@@ -35,13 +35,31 @@ const toNumber = (v: unknown) => {
   return 0;
 };
 
-const formatNumber = (val: string | number) => {
+const formatApy = (val: string | number) => {
   const num = toNumber(val);
   if (isNaN(num)) return 'N/A';
-  if (Math.abs(num) > 1e6 || Math.abs(num) < 1e-2) {
-    return num.toExponential(2); // 科学计数法
+  if (Math.abs(num) > 1e6) {
+    return (num / 1e6).toFixed(2) + 'M';
   }
-  return num.toFixed(2); // 正常格式
+  return num.toFixed(2);
+};
+
+const formatDaily = (val: string | number) => {
+  const num = toNumber(val);
+  if (isNaN(num)) return 'N/A';
+  if (Math.abs(num) > 1e6) {
+    return (num / 1e6).toFixed(4) + 'M';
+  }
+  return num.toFixed(4);
+};
+
+const formatTvl = (val: string | number) => {
+  const num = toNumber(val);
+  if (isNaN(num)) return 'N/A';
+  if (Math.abs(num) > 1e6) {
+    return (num / 1e6).toFixed(2) + 'M';
+  }
+  return Math.round(num).toString();
 };
 
 /* 根据链名拼本地 icon 路径 */
@@ -272,13 +290,13 @@ type Props = {
             <div className="w-28">{v.tvl}</div> */}
 
           <div className="w-28 text-yellow-400 font-semibold" title={v.apy}>
-              {formatNumber(v.apy)}%
+              {formatApy(v.apy)}%
             </div>
             <div className="w-28 text-green-400" title={v.daily}>
-              {formatNumber(v.daily)}%
+              {formatDaily(v.daily)}%
             </div>
             <div className="w-28" title={v.tvl}>
-              ${formatNumber(v.tvl)}
+              ${formatTvl(v.tvl)}
             </div>
           </div>
         </div>
