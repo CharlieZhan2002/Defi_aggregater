@@ -27,7 +27,10 @@ export interface VaultDetails {
     tvl?: number;
     apy?: number;
     daily?: number;
+    lpPrice?: number;
+    totalSupply?: string;
 }
+
 
 export interface HistoricalRate {
     date: string;
@@ -61,11 +64,14 @@ export interface LPBreakdown {
 
 
 export async function fetchVaultDetails(vaultId: string): Promise<VaultDetails> {
-    const [vaultResponse, apyResponse, tvlResponse] = await Promise.all([
+    const [vaultResponse, apyResponse, tvlResponse, breakdownResponse] = await Promise.all([
         fetch(`${BEEFY_API_BASE}/vaults`),
         fetch(`${BEEFY_API_BASE}/apy`),
-        fetch(`${BEEFY_API_BASE}/tvl`)
+        fetch(`${BEEFY_API_BASE}/tvl`),
+        fetch(`${BEEFY_API_BASE}/lps/breakdown`)
     ]);
+    const breakdownData = await breakdownResponse.json();
+    const lpBreakdown = breakdownData[vaultId];
 
     const vaults = await vaultResponse.json();
     const apys = await apyResponse.json();
@@ -126,7 +132,9 @@ export async function fetchVaultDetails(vaultId: string): Promise<VaultDetails> 
 
         tvl: isNaN(tvl) ? 0 : tvl,
         apy: apys[vaultId] || 0,
-        daily: (apys[vaultId] || 0) / 365
+        daily: (apys[vaultId] || 0) / 365,
+        lpPrice: lpBreakdown?.price || 0,
+        totalSupply: lpBreakdown?.totalSupply || '0'
     };
 }
 
