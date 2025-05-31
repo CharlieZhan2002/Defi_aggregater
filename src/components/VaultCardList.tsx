@@ -35,6 +35,14 @@ const toNumber = (v: unknown) => {
   return 0;
 };
 
+const formatNumber = (val: string | number) => {
+  const num = toNumber(val);
+  if (isNaN(num)) return 'N/A';
+  if (Math.abs(num) > 1e6 || Math.abs(num) < 1e-2) {
+    return num.toExponential(2); // 科学计数法
+  }
+  return num.toFixed(2); // 正常格式
+};
 
 /* 根据链名拼本地 icon 路径 */
 const getChainIconUrl = (chain: string) =>
@@ -146,8 +154,8 @@ type Props = {
           />
         </div>
         {/* 排序字段 */}
-        <div className="flex gap-6 flex-wrap justify-end w-full md:w-auto">
-          {sortFields.map(f => (
+        <div className="flex gap-12 flex-wrap justify-end w-full md:w-auto">
+          {/* {sortFields.map(f => (
             <button
               key={f}
               onClick={() => toggleSort(f)}
@@ -158,19 +166,46 @@ type Props = {
               {sortField === f &&
                 (sortAsc ? <FaSortUp className="text-xs" /> : <FaSortDown className="text-xs" />)}
             </button>
+          ))} */}
+          {sortFields.map(f => (
+            <button
+              key={f}
+              onClick={() => {
+                if (sortField === f) {
+                  setSortAsc(!sortAsc);  // 切换升降序
+                } else {
+                  setSortField(f);
+                  setSortAsc(false); // 默认降序
+                }
+              }}
+              className={`flex items-center gap-2 px-3 py-1 rounded-md border border-slate-600 
+                          hover:text-white hover:border-white transition-all
+                          ${sortField === f ? 'text-white font-semibold bg-slate-700' : 'text-slate-400'}`}
+            >
+              <span>{f}</span>
+              <div className="flex flex-col text-xs leading-none">
+                <FaSortUp
+                  className={sortField === f && sortAsc ? 'text-white' : 'text-slate-500'}
+                />
+                <FaSortDown
+                  className={sortField === f && !sortAsc ? 'text-white' : 'text-slate-500'}
+                />
+              </div>
+            </button>
           ))}
+
         </div>
       </div>
 
       {/* 表头（大屏） */}
-      <div className="hidden md:flex justify-between text-xs text-slate-400 px-2 pl-16 pr-6">
+      {/* <div className="hidden md:flex justify-between text-xs text-slate-400 px-2 pl-16 pr-6">
         <div className="w-1/2" />
         <div className="flex gap-10 w-1/2 justify-end">
-          <div className="w-20 text-right">APY</div>
-          <div className="w-20 text-right">Daily</div>
-          <div className="w-24 text-right">TVL</div>
+          <div className="w-28 text-right">APY</div>
+          <div className="w-28 text-right">Daily</div>
+          <div className="w-28 text-right">TVL</div>
         </div>
-      </div>
+      </div> */}
 
       {/* 卡片列表 */}
       <div className="relative z-0 space-y-4"></div>
@@ -244,9 +279,21 @@ type Props = {
 
           {/* 右侧数值 */}
           <div className="flex gap-10 w-1/2 justify-end text-sm text-right">
-            <div className="w-20 text-yellow-400 font-semibold">{v.apy}</div>
-            <div className="w-20 text-green-400">{v.daily}</div>
-            <div className="w-24">{v.tvl}</div>
+            {/* <div className="w-20 text-yellow-400 font-semibold">{v.apy}</div>
+            <div className="w-28 text-yellow-400 font-semibold" title={v.apy}>
+              {formatNumber(v.apy)}%
+            </div>
+            <div className="w-28">{v.tvl}</div> */}
+
+          <div className="w-28 text-yellow-400 font-semibold" title={v.apy}>
+              {formatNumber(v.apy)}%
+            </div>
+            <div className="w-28 text-green-400" title={v.daily}>
+              {formatNumber(v.daily)}%
+            </div>
+            <div className="w-28" title={v.tvl}>
+              ${formatNumber(v.tvl)}
+            </div>
           </div>
         </div>
       ))}
