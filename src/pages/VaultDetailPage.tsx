@@ -1,33 +1,55 @@
 import { useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import type { VaultDetails } from '../api/beefyAPI';
-import { fetchVaultDetails } from '../api/beefyAPI';
+import type { VaultDetails, LPBreakdown } from '../api/beefyAPI';
+import { fetchVaultDetails, fetchLPBreakdown } from '../api/beefyAPI';
 import { FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
+import { Doughnut } from 'react-chartjs-2';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
+
+ChartJS.register(ArcElement, Tooltip, Legend);
 
 export default function VaultDetailPage() {
     const { id } = useParams<{ id?: string }>();
     const [loading, setLoading] = useState(true);
     const [vault, setVault] = useState<VaultDetails | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [lpBreakdown, setLpBreakdown] = useState<LPBreakdown | null>(null);
 
     useEffect(() => {
+        let mounted = true;
+
         async function loadVaultDetails() {
+
             if (!id) return;
 
             try {
                 setLoading(true);
-                const details = await fetchVaultDetails(id);
-                setVault(details);
-                setError(null);
+                const [details, breakdown] = await Promise.all([
+                    fetchVaultDetails(id),
+                    fetchLPBreakdown(id)
+                ]);
+
+                if (mounted) {
+                    setVault(details);
+                    setLpBreakdown(breakdown);
+                    setError(null);
+                }
             } catch (err) {
-                console.error('Error loading vault details:', err);
-                setError(err instanceof Error ? err.message : 'Failed to load vault details');
+                if (mounted) {
+                    console.error('Error loading vault details:', err);
+                    setError(err instanceof Error ? err.message : 'Failed to load vault details');
+                }
             } finally {
-                setLoading(false);
+                if (mounted) {
+                    setLoading(false);
+                }
             }
         }
 
         loadVaultDetails();
+        return () => {
+            mounted = false;
+        };
     }, [id]);
 
     if (loading) {
@@ -127,6 +149,73 @@ export default function VaultDetailPage() {
                         })}
                     </div>
                 </div>
+
+                {/* LP Breakdown Card */}
+                {lpBreakdown && (
+                    <div className="bg-[#1E293B] rounded-lg p-6">
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-xl font-bold">LP Breakdown</h2>
+                            <div className="flex gap-2">
+                                <button className="px-3 py-1 rounded bg-transparent text-sm hover:bg-[#334155] transition-colors">Total Pool</button>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-8">
+                            <div className="w-64 h-64 relative">
+                                <Doughnut
+                                    data={{
+                                        labels: vault.assets,
+                                        datasets: [{
+                                            data: lpBreakdown.balances.map(Number),
+                                            backgroundColor: [
+                                                '#3B82F6',
+                                                '#10B981'
+                                            ],
+                                            borderWidth: 0,  // 移除白色边框
+                                            cutout: '70%'    // 使圆环更窄
+                                        }]
+                                    }}
+                                    options={{
+                                        plugins: {
+                                            legend: {
+                                                position: 'right',
+                                                labels: {
+                                                    color: 'white',
+                                                    padding: 20,
+                                                    font: {
+                                                        size: 14
+                                                    }
+                                                }
+                                            },
+                                            tooltip: {
+                                                callbacks: {
+                                                    label: function (context) {
+                                                        const value = context.raw as number;
+                                                        return ` ${value.toFixed(2)}`;
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        elements: {
+                                            arc: {
+                                                borderWidth: 0  // 确保没有边框
+                                            }
+                                        }
+                                    }}
+                                />
+                            </div>
+                            <div className="flex-1 space-y-4">
+                                {vault.assets.map((asset, index) => (
+                                    <div key={asset}>
+                                        <div className="text-slate-400 text-sm">{asset} Balance</div>
+                                        <div className="text-2xl font-bold">
+                                            {Number(lpBreakdown.balances[index]).toFixed(2)}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
