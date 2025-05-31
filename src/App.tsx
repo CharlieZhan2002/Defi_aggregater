@@ -52,6 +52,10 @@ export default function App() {
         search={search}
         sortField={sortField}
         minimumTvl={minimumTvl}
+        // 20250531
+        setSearch={setSearch}
+        setSortField={setSortField}
+        setMinimumTvl={setMinimumTvl}
       />
 
 
