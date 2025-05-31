@@ -10,10 +10,9 @@ import type { SortField } from './components/VaultCardList';
 
 export default function App() {
   const [selectedChains, setSelectedChains] = useState<string[]>([]);
-  // yfh add
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [search, setSearch] = useState('');
-  const [sortField, setSortField] = useState<SortField | ''>(''); // SortField 要导入
+  const [sortField, setSortFieldRaw] = useState<SortField | null>(null); // 修改这里
   const [minimumTvl, setMinimumTvl] = useState(0);
   const [showEol, setShowEol] = useState(false); 
 
@@ -65,7 +64,7 @@ export default function App() {
         minimumTvl={minimumTvl}
         // 20250531
         setSearch={setSearch}
-        setSortField={setSortField}
+        setSortField={val => setSortFieldRaw(val)} // 包装一下，兼容 null
         setMinimumTvl={setMinimumTvl}
         showEol={showEol} // 新增
       />

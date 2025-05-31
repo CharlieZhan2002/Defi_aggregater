@@ -52,13 +52,13 @@ const getChainIconUrl = (chain: string) =>
 type Props = {
   selectedChains: string[];   // 传入已选链 key 数组
   selectedCategory: string | null; // new
-  //new
+  
   search: string;
-  sortField: SortField | '';
-  minimumTvl: number; // 添加这个
-  //20250531
+  sortField: SortField | null; 
+  minimumTvl: number; 
+  
   setSearch: (val: string) => void;
-  setSortField: (val: SortField) => void;
+  setSortField: (val: SortField | null) => void; 
   setMinimumTvl: (val: number) => void;
   showEol: boolean; 
 };
@@ -88,20 +88,26 @@ type Props = {
   setSearch,
   setSortField,
   setMinimumTvl,
-  showEol // 新增
+  showEol 
 }) => {
   const [vaults, setVaults] = useState<Vault[]>([]);
   const [sortAsc, setSortAsc] = useState(false);
 
-
-
-  /* 拉数据一次 */
   useEffect(() => { fetchBeefyVaultData().then(setVaults); }, []);
 
-  /* 点击排序标题 */
-  const toggleSort = (field: SortField) => {
-    if (sortField === field) setSortAsc(!sortAsc);
-    else { setSortField(field); setSortAsc(false); }
+  // 修改排序按钮点击逻辑：第三次点击取消排序
+  const handleSortClick = (field: SortField) => {
+    if (sortField === field) {
+      if (!sortAsc) {
+        setSortAsc(true); // 第二次点击，升序
+      } else {
+        setSortField(null); // 第三次点击，取消排序
+        setSortAsc(false);
+      }
+    } else {
+      setSortField(field); // 新字段，降序
+      setSortAsc(false);
+    }
   };
 
   /* 过滤 & 排序 */
@@ -127,6 +133,7 @@ type Props = {
       (showEol || !v.tags.includes('EOL')) // 再次确保
     )
     .sort((a, b) => {
+      if (!sortField) return 0; // 未排序时不变
       let aV = 0, bV = 0;
       switch (sortField) {
         case 'CURRENT APY': aV = toNumber(a.apy);   bV = toNumber(b.apy);   break;
@@ -154,29 +161,10 @@ type Props = {
         </div>
         {/* 排序字段 */}
         <div className="flex gap-12 flex-wrap justify-end w-full md:w-auto">
-          {/* {sortFields.map(f => (
-            <button
-              key={f}
-              onClick={() => toggleSort(f)}
-              className={`flex items-center gap-1 hover:text-white ${
-                sortField === f ? 'text-white font-semibold' : ''}`}
-            >
-              {f}
-              {sortField === f &&
-                (sortAsc ? <FaSortUp className="text-xs" /> : <FaSortDown className="text-xs" />)}
-            </button>
-          ))} */}
           {sortFields.map(f => (
             <button
               key={f}
-              onClick={() => {
-                if (sortField === f) {
-                  setSortAsc(!sortAsc);  // 切换升降序
-                } else {
-                  setSortField(f);
-                  setSortAsc(false); // 默认降序
-                }
-              }}
+              onClick={() => handleSortClick(f)}
               className={`flex items-center gap-2 px-3 py-1 rounded-md border border-slate-600 
                           hover:text-white hover:border-white transition-all
                           ${sortField === f ? 'text-white font-semibold bg-slate-700' : 'text-slate-400'}`}
@@ -187,12 +175,11 @@ type Props = {
                   className={sortField === f && sortAsc ? 'text-white' : 'text-slate-500'}
                 />
                 <FaSortDown
-                  className={sortField === f && !sortAsc ? 'text-white' : 'text-slate-500'}
+                  className={sortField === f && !sortAsc && sortField === f ? 'text-white' : 'text-slate-500'}
                 />
               </div>
             </button>
           ))}
-
         </div>
       </div>
 
