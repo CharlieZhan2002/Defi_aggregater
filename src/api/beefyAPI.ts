@@ -27,7 +27,10 @@ export interface VaultDetails {
     tvl?: number;
     apy?: number;
     daily?: number;
+    lpPrice?: number;
+    totalSupply?: string;
 }
+
 
 export interface HistoricalRate {
     date: string;
@@ -51,13 +54,24 @@ export interface LPTokenData {
     totalSupply: string;
 }
 
+export interface LPBreakdown {
+    price: number;
+    tokens: string[];
+    balances: string[];
+    totalSupply: string;
+    underlyingBalances?: string[];
+}
+
 
 export async function fetchVaultDetails(vaultId: string): Promise<VaultDetails> {
-    const [vaultResponse, apyResponse, tvlResponse] = await Promise.all([
+    const [vaultResponse, apyResponse, tvlResponse, breakdownResponse] = await Promise.all([
         fetch(`${BEEFY_API_BASE}/vaults`),
         fetch(`${BEEFY_API_BASE}/apy`),
-        fetch(`${BEEFY_API_BASE}/tvl`)
+        fetch(`${BEEFY_API_BASE}/tvl`),
+        fetch(`${BEEFY_API_BASE}/lps/breakdown`)
     ]);
+    const breakdownData = await breakdownResponse.json();
+    const lpBreakdown = breakdownData[vaultId];
 
     const vaults = await vaultResponse.json();
     const apys = await apyResponse.json();
@@ -75,7 +89,21 @@ export async function fetchVaultDetails(vaultId: string): Promise<VaultDetails> 
         'cronos': '25',
         'fantom': '250',
         'gnosis': '100',
-        // ... 其他链的映射
+        'avax': '43114',      // Avalanche C-Chain
+        'aurora': '1313161554',
+        'base': '8453',
+        'canto': '7700',
+        'celo': '42220',
+        'emerald': '42262',   // Oasis Emerald
+        'fuse': '122',
+        'harmony': '1666600000',
+        'heco': '128',        // Huobi ECO Chain
+        'kava': '2222',
+        'metis': '1088',
+        'moonbeam': '1284',
+        'moonriver': '1285',
+        'polygon-zkevm': '1101',
+        'zksync': '324'
     };
 
     const chainId = chainIdMap[vault.network] || chainIdMap[vault.chain];
@@ -104,7 +132,9 @@ export async function fetchVaultDetails(vaultId: string): Promise<VaultDetails> 
 
         tvl: isNaN(tvl) ? 0 : tvl,
         apy: apys[vaultId] || 0,
-        daily: (apys[vaultId] || 0) / 365
+        daily: (apys[vaultId] || 0) / 365,
+        lpPrice: lpBreakdown?.price || 0,
+        totalSupply: lpBreakdown?.totalSupply || '0'
     };
 }
 
@@ -128,4 +158,21 @@ export async function fetchHistoricalRates(vaultId: string): Promise<HistoricalR
             apy: Number(apy) * 100
         }))
         .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+}
+
+export async function fetchLPBreakdown(vaultId: string): Promise<LPBreakdown | null> {
+    try {
+        const response = await fetch(`${BEEFY_API_BASE}/lps/breakdown`);
+        const breakdownData = await response.json();
+
+        if (!breakdownData[vaultId]) {
+            console.warn(`No LP breakdown data for vault ${vaultId}`);
+            return null;
+        }
+
+        return breakdownData[vaultId];
+    } catch (error) {
+        console.error('Failed to fetch LP breakdown:', error);
+        return null;
+    }
 }
