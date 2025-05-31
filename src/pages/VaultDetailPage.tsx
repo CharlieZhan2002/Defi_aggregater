@@ -5,14 +5,12 @@ import { fetchVaultDetails } from '../api/beefyAPI';
 import { FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
 
 export default function VaultDetailPage() {
-    const { id } = useParams<{ id: string }>();
+    const { id } = useParams<{ id?: string }>();
     const [loading, setLoading] = useState(true);
     const [vault, setVault] = useState<VaultDetails | null>(null);
     const [error, setError] = useState<string | null>(null);
-    const [lpBreakdown, setLpBreakdown] = useState<LPBreakdown | null>(null);
 
     useEffect(() => {
-
         async function loadVaultDetails() {
             if (!id) return;
 
@@ -129,8 +127,6 @@ export default function VaultDetailPage() {
                         })}
                     </div>
                 </div>
-
-                
             </div>
         </div>
     );
