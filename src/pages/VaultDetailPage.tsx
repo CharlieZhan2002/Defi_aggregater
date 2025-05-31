@@ -114,95 +114,7 @@ export default function VaultDetailPage() {
                     </div>
                 </div>
 
-                {/* LP Breakdown Card */}
-                {/* {lpBreakdown && (
-                    <div className="bg-[#1E293B] rounded-lg p-6">
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-xl font-bold">LP Breakdown</h2>
-                            <div className="flex gap-2">
-                                <button className="px-3 py-1 rounded bg-transparent text-sm hover:bg-[#334155] transition-colors">Total Pool</button>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-8">
-                            <div className="w-64 h-64 relative">
-                                <Doughnut
-                                    data={{
-                                        labels: vault.assets,
-                                        datasets: [{
-                                            data: lpBreakdown.balances.map(Number),
-                                            backgroundColor: [
-                                                '#3B82F6',
-                                                '#10B981'
-                                            ],
-                                            borderWidth: 0,  // 移除白色边框
-                                            cutout: '70%'    // 使圆环更窄
-                                        }]
-                                    }}
-                                    options={{
-                                        plugins: {
-                                            legend: {
-                                                position: 'right',
-                                                labels: {
-                                                    color: 'white',
-                                                    padding: 20,
-                                                    font: {
-                                                        size: 14
-                                                    }
-                                                }
-                                            },
-                                            tooltip: {
-                                                callbacks: {
-                                                    label: function (context) {
-                                                        const value = context.raw as number;
-                                                        return ` ${value.toFixed(2)}`;
-                                                    }
-                                                }
-                                            }
-                                        },
-                                        elements: {
-                                            arc: {
-                                                borderWidth: 0  // 确保没有边框
-                                            }
-                                        }
-                                    }}
-                                />
-                            </div>
-                            <div className="flex-1 space-y-4">
-                                {vault.assets.map((asset, index) => (
-                                    <div key={asset}>
-                                        <div className="text-slate-400 text-sm">{asset} Balance</div>
-                                        <div className="text-2xl font-bold">
-                                            {Number(lpBreakdown.balances[index]).toFixed(2)}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                )} */}
-
-
-                {/* LP Stats Card */}
-                {/* <div className="bg-[#1E293B] rounded-lg p-6">
-                    <h2 className="text-xl font-bold mb-4">LP Statistics</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="bg-[#0F172A] p-4 rounded-lg">
-                            <div className="text-slate-400 text-sm mb-1">LP Token Price</div>
-                            <div className="text-2xl font-bold">
-                                ${Number(vault?.lpPrice || 0).toFixed(2)}
-                            </div>
-                        </div>
-
-                        <div className="bg-[#0F172A] p-4 rounded-lg">
-                            <div className="text-slate-400 text-sm mb-1">Total Supply</div>
-                            <div className="text-2xl font-bold">
-                                {Number(vault?.totalSupply || 0).toLocaleString(undefined, {
-                                    maximumFractionDigits: 2
-                                })}
-                            </div>
-                        </div>
-                    </div>
-                </div> */}
+             
 
                 {/* LP Information Row */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -226,11 +138,11 @@ export default function VaultDetailPage() {
                                                     '#3B82F6',
                                                     '#10B981'
                                                 ],
-                                                borderWidth: 0,  // 移除白色边框
-                                                cutout: '70%'    // 使圆环更窄
+                                                borderWidth: 0  // 移除白色边框
                                             }]
                                         }}
                                         options={{
+                                            cutout: '70%', // 使圆环更窄
                                             plugins: {
                                                 legend: {
                                                     position: 'right',
