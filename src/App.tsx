@@ -15,6 +15,7 @@ export default function App() {
   const [search, setSearch] = useState('');
   const [sortField, setSortField] = useState<SortField | ''>(''); // SortField 要导入
   const [minimumTvl, setMinimumTvl] = useState(0);
+  const [showEol, setShowEol] = useState(false); 
 
 
 
@@ -42,6 +43,16 @@ export default function App() {
         <MinimumTvlSlider value={minimumTvl} onChange={setMinimumTvl} /> {/* TVL 滑块 */}
         {/* console.log('[DEBUG] setMinimumTvl called with:', val); */}
         {/* <MinimumTvlSlider /> */}
+        {/* 新增 EOL 勾选框 */}
+        <label className="flex items-center gap-2 bg-[#1e293b] px-4 py-2 rounded-xl text-white text-sm">
+          <input
+            type="checkbox"
+            checked={showEol}
+            onChange={e => setShowEol(e.target.checked)}
+            className="accent-blue-500"
+          />
+          Show EOL
+        </label>
       </div>
 
       {/* 卡片列表：把已选链传进去 */}
@@ -56,6 +67,7 @@ export default function App() {
         setSearch={setSearch}
         setSortField={setSortField}
         setMinimumTvl={setMinimumTvl}
+        showEol={showEol} // 新增
       />
 
 

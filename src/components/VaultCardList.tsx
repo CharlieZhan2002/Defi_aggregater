@@ -60,6 +60,7 @@ type Props = {
   setSearch: (val: string) => void;
   setSortField: (val: SortField) => void;
   setMinimumTvl: (val: number) => void;
+  showEol: boolean; 
 };
 // type Props = {
 //   selectedChains: string[];
@@ -86,7 +87,8 @@ type Props = {
   minimumTvl,
   setSearch,
   setSortField,
-  setMinimumTvl
+  setMinimumTvl,
+  showEol // 新增
 }) => {
   const [vaults, setVaults] = useState<Vault[]>([]);
   const [sortAsc, setSortAsc] = useState(false);
@@ -110,22 +112,19 @@ type Props = {
 
 
 
+      if (!showEol && v.tags.includes('EOL')) return false;
       return (
         v.name.toLowerCase().includes(search.toLowerCase()) &&
         (selectedChains.length === 0 || selectedChains.includes(v.chain)) &&
-        // (!selectedCategory || v.tags.map(tag => tag.toLowerCase()).includes(selectedCategory.toLowerCase()))
         (!selectedCategory || v.category === selectedCategory)
-
       );
     })
     .filter(v =>
       v.name.toLowerCase().includes(search.toLowerCase()) &&
       (selectedChains.length === 0 || selectedChains.includes(v.chain)) &&
-      // (!selectedCategory || v.tags.includes(selectedCategory.toUpperCase()))
       (!selectedCategory || v.category === selectedCategory) &&
-      toNumber(v.tvl) >= minimumTvl // add
-
-
+      toNumber(v.tvl) >= minimumTvl &&
+      (showEol || !v.tags.includes('EOL')) // 再次确保
     )
     .sort((a, b) => {
       let aV = 0, bV = 0;
