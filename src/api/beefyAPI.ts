@@ -44,55 +44,13 @@ export interface APYBreakdown {
     totalApy: number;
 }
 
-export interface LPTokenInfo {
+export interface LPTokenData {
     price: number;
-    tokens: string[];
+    tokens: string[];  // token addresses
     balances: string[];
     totalSupply: string;
 }
 
-export interface LPBreakdown {
-    tokens: {
-        symbol: string;
-        amount: number;
-        value: number;
-    }[];
-    totalValue: number;
-    lpAmount: number;
-}
-
-export async function fetchLPBreakdown(vaultId: string): Promise<LPBreakdown | null> {
-    try {
-        const [lpsResponse, tokensResponse] = await Promise.all([
-            fetch(`${BEEFY_API_BASE}/lps/${vaultId}`),
-            fetch(`${BEEFY_API_BASE}/tokens`)
-        ]);
-
-        if (!lpsResponse.ok) {
-            console.warn(`No LP data for vault ${vaultId}`);
-            return null;
-        }
-
-        const lpData: LPTokenInfo = await lpsResponse.json();
-        const tokens = await tokensResponse.json();
-
-        const totalValue = parseFloat(lpData.price);
-        const breakdown: LPBreakdown = {
-            tokens: lpData.tokens.map((token, index) => ({
-                symbol: token,
-                amount: parseFloat(lpData.balances[index]),
-                value: (parseFloat(lpData.balances[index]) * totalValue) / 2
-            })),
-            totalValue,
-            lpAmount: parseFloat(lpData.totalSupply)
-        };
-
-        return breakdown;
-    } catch (error) {
-        console.error('Failed to fetch LP breakdown:', error);
-        return null;
-    }
-}
 
 export async function fetchVaultDetails(vaultId: string): Promise<VaultDetails> {
     const [vaultResponse, apyResponse, tvlResponse] = await Promise.all([
@@ -103,20 +61,48 @@ export async function fetchVaultDetails(vaultId: string): Promise<VaultDetails> 
 
     const vaults = await vaultResponse.json();
     const apys = await apyResponse.json();
-    const tvls = await tvlResponse.json();
+    const tvlData = await tvlResponse.json();
 
     const vault = vaults.find((v: any) => v.id === vaultId);
     if (!vault) throw new Error('Vault not found');
 
-    const tvl = tvls[vaultId];
-    if (typeof tvl !== 'number') {
-        console.warn(`TVL data not found for vault ${vaultId}`);
+    const chainIdMap: { [key: string]: string } = {
+        'ethereum': '1',
+        'bsc': '56',
+        'polygon': '137',
+        'optimism': '10',
+        'arbitrum': '42161',
+        'cronos': '25',
+        'fantom': '250',
+        'gnosis': '100',
+        // ... 其他链的映射
+    };
+
+    const chainId = chainIdMap[vault.network] || chainIdMap[vault.chain];
+    if (!chainId) {
+        console.warn(`Unknown chain for vault ${vaultId}: ${vault.network}/${vault.chain}`);
+        return {
+            ...vault,
+            tvl: 0,
+            apy: apys[vaultId] || 0,
+            daily: (apys[vaultId] || 0) / 365
+        };
     }
+    const chainTvlData = tvlData[chainId] || {};
+    const tvl = Number(chainTvlData[vaultId]);
+
+    if (isNaN(tvl)) {
+        console.warn(`Invalid TVL data for vault ${vaultId} on chain ${chainId}: ${chainTvlData[vaultId]}`);
+    }
+
+    // if (typeof tvl !== 'number') {
+    //     console.warn(`TVL data not found for vault ${vaultId}`);
+    // }
 
     return {
         ...vault,
-        // tvl: tvls[vaultId] || 0,
-        tvl: tvl || 0,
+
+        tvl: isNaN(tvl) ? 0 : tvl,
         apy: apys[vaultId] || 0,
         daily: (apys[vaultId] || 0) / 365
     };

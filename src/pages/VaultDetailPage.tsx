@@ -1,8 +1,6 @@
 import { useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import type { VaultDetails } from '../api/beefyAPI';
-import type { LPBreakdown } from '../api/beefyAPI';
-import { fetchLPBreakdown } from '../api/beefyAPI';
 import { fetchVaultDetails } from '../api/beefyAPI';
 import { FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
 
@@ -14,29 +12,6 @@ export default function VaultDetailPage() {
     const [lpBreakdown, setLpBreakdown] = useState<LPBreakdown | null>(null);
 
     useEffect(() => {
-
-        async function loadVaultData() {
-            if (!id) return;
-
-            try {
-                setLoading(true);
-                const [details, lpData] = await Promise.all([
-                    fetchVaultDetails(id),
-                    fetchLPBreakdown(id)
-                ]);
-
-                setVault(details);
-                setLpBreakdown(lpData);
-                setError(null);
-            } catch (err) {
-                console.error('Error loading vault details:', err);
-                setError(err instanceof Error ? err.message : 'Failed to load vault details');
-            } finally {
-                setLoading(false);
-            }
-        }
-
-        loadVaultData();
 
         async function loadVaultDetails() {
             if (!id) return;
@@ -155,44 +130,7 @@ export default function VaultDetailPage() {
                     </div>
                 </div>
 
-                {/* LP Breakdown Card */}
-                {lpBreakdown && (
-                    <div className="bg-[#1E293B] rounded-lg p-6">
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-xl font-bold">LP Breakdown</h2>
-                            <div className="flex gap-2">
-                                <span className="px-3 py-1 rounded bg-[#334155] text-sm">1 LP</span>
-                                <span className="px-3 py-1 rounded bg-transparent text-sm">Total Pool</span>
-                            </div>
-                        </div>
-
-                        <div className="space-y-4">
-                            {lpBreakdown.tokens.map((token, index) => (
-                                <div key={token.symbol} className="flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <img
-                                            src={`/images/tokens/${token.symbol.toLowerCase()}.svg`}
-                                            alt={token.symbol}
-                                            className="w-8 h-8 rounded-full"
-                                            onError={(e) => {
-                                                const img = e.target as HTMLImageElement;
-                                                img.src = '/images/tokens/unknown.svg';
-                                            }}
-                                        />
-                                        <div>
-                                            <div className="font-medium">{token.symbol}</div>
-                                            <div className="text-sm text-slate-400">{token.amount.toLocaleString(undefined, { maximumFractionDigits: 4 })}</div>
-                                        </div>
-                                    </div>
-                                    <div className="text-right">
-                                        <div className="font-medium">${token.value.toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
-                                        <div className="text-sm text-slate-400">50%</div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
+                
             </div>
         </div>
     );
