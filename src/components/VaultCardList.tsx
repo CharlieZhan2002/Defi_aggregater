@@ -48,6 +48,10 @@ type Props = {
   search: string;
   sortField: SortField | '';
   minimumTvl: number; // 添加这个
+  //20250531
+  setSearch: (val: string) => void;
+  setSortField: (val: SortField) => void;
+  setMinimumTvl: (val: number) => void;
 };
 // type Props = {
 //   selectedChains: string[];
@@ -59,12 +63,25 @@ type Props = {
 // };
 
 
-export const VaultCardList: React.FC<Props> = ({ selectedChains, selectedCategory }) => {
+// 20250531 yfh
+// export const VaultCardList: React.FC<Props> = ({ selectedChains, selectedCategory }) => {
+  // const [vaults, setVaults] = useState<Vault[]>([]);
+  // const [search, setSearch] = useState('');
+  // const [sortField, setSortField] = useState<SortField | ''>('');
+  // const [sortAsc, setSortAsc] = useState(false);
+  // const [minimumTvl, setMinimumTvl] = useState(0); // add
+  export const VaultCardList: React.FC<Props> = ({
+  selectedChains,
+  selectedCategory,
+  search,
+  sortField,
+  minimumTvl,
+  setSearch,
+  setSortField,
+  setMinimumTvl
+}) => {
   const [vaults, setVaults] = useState<Vault[]>([]);
-  const [search, setSearch] = useState('');
-  const [sortField, setSortField] = useState<SortField | ''>('');
   const [sortAsc, setSortAsc] = useState(false);
-  const [minimumTvl, setMinimumTvl] = useState(0); // add
 
 
 
