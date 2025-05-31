@@ -23,7 +23,11 @@ export default function VaultToolbar({
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
 
   return (
-    <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-[#1e293b] px-4 py-3 rounded-lg text-slate-300 text-sm">
+    // 
+    // <div className="flex flex-col md:flex-row items-start md:items-center md:gap-12 gap-4 bg-[#1e293b] px-4 py-3 rounded-lg text-slate-300 text-sm">
+
+    <div className="flex flex-col md:flex-row items-start md:items-center md:gap-12 gap-4 bg-[#1e293b] px-4 py-3 rounded-lg text-slate-300 text-sm">
+
       {/* 搜索框 */}
       <div className="flex items-center bg-[#0f172a] px-3 py-1.5 rounded-md w-full md:w-80">
         <FaSearch className="text-slate-500 mr-2" />
@@ -50,7 +54,7 @@ export default function VaultToolbar({
       />
 
       {/* 排序字段 */}
-      <div className="flex gap-6 flex-wrap justify-end w-full md:w-auto">
+      <div className="flex gap-26 flex-wrap justify-end w-full md:w-auto">
         {sortFields.map(field => (
           <button
             key={field}
@@ -60,6 +64,8 @@ export default function VaultToolbar({
             {field}
           </button>
         ))}
+
+
       </div>
 
       
