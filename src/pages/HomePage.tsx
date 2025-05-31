@@ -9,8 +9,9 @@ export default function HomePage() {
   const [selectedChains, setSelectedChains] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [search, setSearch] = useState('');
-  const [sortField, setSortField] = useState<SortField | ''>('');
+  const [sortField, setSortField] = useState<SortField | null>(null);
   const [minimumTvl, setMinimumTvl] = useState(0);
+  const [showEol, setShowEol] = useState(false);
 
   const toggleChain = (key: string) =>
     setSelectedChains(prev =>
@@ -29,6 +30,15 @@ export default function HomePage() {
           onSelected={setSelectedCategory}
         />
         <MinimumTvlSlider value={minimumTvl} onChange={setMinimumTvl} />
+        <label className="flex items-center gap-2 bg-[#1e293b] px-4 py-2 rounded-xl text-white text-sm">
+          <input
+            type="checkbox"
+            checked={showEol}
+            onChange={e => setShowEol(e.target.checked)}
+            className="accent-blue-500"
+          />
+          Show EOL
+        </label>
       </div>
 
       {/* 卡片列表 */}
@@ -38,6 +48,10 @@ export default function HomePage() {
         search={search}
         sortField={sortField}
         minimumTvl={minimumTvl}
+        setSearch={setSearch}
+        setSortField={setSortField}
+        setMinimumTvl={setMinimumTvl}
+        showEol={showEol}
       />
     </div>
   );
